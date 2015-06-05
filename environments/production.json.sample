@@ -1,0 +1,30 @@
+{
+  "cxn": {
+    "purgers": {
+      "my-ci-server-1":   "54.54.54.54",
+      "some-other-thing": "54.54.54.54"
+    },
+    "nodes": {
+      "cdn-example-node-1": "54.54.54.54",
+      "cdn-example-node-2": "54.54.54.54"
+    },
+    "newrelic": "my-new-relic-token",
+    "varnish": {
+      "storage_size": "4g"
+    },
+    "domains":     [
+      {
+        "id":            "global",
+        "domain":        "cdn.mycompany.com",
+        "bucket":        "my-s3-bucket",
+        "bucket_region": "us-east-1",
+        "ssl":           true
+      }
+    ]
+  },
+  "default_attributes": {},
+  "chef_type": "environment",
+  "run_list": [
+    "recipe[cxn]"
+  ]
+}

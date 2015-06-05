@@ -1,0 +1,89 @@
+vcl 4.0;
+
+<% node['cxn']['domains'].each do |config| -%>
+backend s3_<%= config.id %> {
+    .host = "s3.<%= config.bucket_region %>.amazonaws.com";
+    .port = "80";
+    .connect_timeout = 5s;
+    .first_byte_timeout = 10s;
+    .between_bytes_timeout = 10s;
+}
+<% end -%>
+
+sub vcl_recv {
+<% node['cxn']['domains'].each do |config| -%>
+    if (req.http.host == "<%= config.domain %>") {
+      set req.http.host = "<%= config.bucket %>.s3.amazonaws.com";
+      set req.backend_hint = s3_<%= config.id %>;
+    }
+<% end -%>
+    set req.url = regsub(req.url, "\?.*", "");
+
+    if (req.method == "DELETE") {
+        ban("obj.http.x-url ~ " + req.url);
+        return (synth(200, "OK"));
+    }
+
+    if (req.url == "/health" || req.url == "/"){
+        return (synth(200, "OK"));
+    }
+
+    # remove headers from request
+    unset req.http.cookie;
+    unset req.http.cache-control;
+    unset req.http.pragma;
+    unset req.http.expires;
+    unset req.http.etag;
+    unset req.http.X-Forwarded-For;
+}
+
+sub vcl_synth {
+  if (resp.status == 200 && req.url ~ "^/$") {
+      synthetic("");
+      return (deliver);
+  }
+}
+
+sub vcl_backend_response {
+    if ( beresp.http.Content-Length ~ "[0-9]{8,}" ) {
+        set beresp.ttl = 0s;
+        set beresp.uncacheable = true;
+        return (deliver);
+    }
+}
+
+sub vcl_deliver {
+    # remove s3 headers from response
+    unset resp.http.X-Amz-Id-2;
+    unset resp.http.X-Amz-Meta-Group;
+    unset resp.http.X-Amz-Meta-Owner;
+    unset resp.http.X-Amz-Meta-Permissions;
+    unset resp.http.X-Amz-Request-Id;
+
+    if (obj.hits > 0) {
+        set resp.http.X-Cache = "HIT";
+    } else {
+        set resp.http.X-Cache = "MISS";
+    }
+}
+
+sub vcl_backend_response {
+    set beresp.http.x-url = bereq.url;
+
+    if (beresp.http.content-type ~ "(text|application)") {
+        set beresp.do_gzip = true;
+    } else {
+        set beresp.do_gzip = false;
+    }
+
+    if (beresp.http.content-type ~ "(gzip|octet|x-tar)") {
+        set beresp.do_gzip = false;
+    }
+
+    if ( beresp.status >= 400 ) {
+        set beresp.ttl = 0s;
+        set beresp.uncacheable = true;
+    } else {
+        set beresp.ttl = 3h;
+    }
+}

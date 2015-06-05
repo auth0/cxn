@@ -1,0 +1,27 @@
+more_clear_headers x-varnish;
+more_clear_headers server;
+more_clear_headers via;
+more_clear_headers x-url;
+
+upstream varnish {
+  server <%= @varnish_address %>:<%= @varnish_port %>;
+  keepalive 12;
+}
+
+server {
+  listen    80 default;
+  server_name _;
+
+  more_set_headers 'Access-Control-Allow-Origin: *' 'Access-Control-Allow-Methods: GET, HEAD, OPTIONS' 'Access-Control-Allow-Headers: *';
+
+  location / {
+    limit_except GET {
+      <% @purgers.each do |purger| %>
+      allow "<%= purger %>";
+      <% end %>
+      deny  all;
+    }
+    proxy_http_version 1.1;
+    proxy_pass http://varnish;
+  }
+}

@@ -1,0 +1,20 @@
+server {
+  listen         80;
+  server_name    <%= @domain %>;
+  more_set_headers 'Access-Control-Allow-Origin: *' 'Access-Control-Allow-Methods: GET, HEAD, OPTIONS' 'Access-Control-Allow-Headers: *';
+
+  <% if @ssl -%>
+  location / {
+    limit_except GET {
+      deny  all;
+    }
+    proxy_http_version 1.1;
+    proxy_pass http://varnish;
+    proxy_set_header Host $host;
+  }
+
+  <% else -%>
+<%= render "nginx/main.conf.erb" -%>
+  <% end -%>
+
+}

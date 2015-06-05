@@ -1,0 +1,20 @@
+{
+  "cxn": {
+    "purgers": {
+      "localhost": "127.0.0.1",
+      "host-machine": "192.168.10.1"
+    },
+    "nodes": {
+      "vagrant": "192.168.10.200"
+    },
+    "domains":     [
+      {
+        "id":            "global",
+        "domain":        "cdn-local.it.auth0.com",
+        "bucket":        "assets.auth0.com",
+        "bucket_region": "us-east-1",
+        "ssl":           false
+      }
+    ]
+  }
+}

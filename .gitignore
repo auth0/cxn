@@ -1,0 +1,26 @@
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+pkg/
+
+# Berkshelf
+.vagrant
+/cookbooks
+Berksfile.lock
+
+# Bundler
+Gemfile.lock
+bin/*
+.bundle/*
+
+files/default/localcerts/*
+files/default/stunnel/*
+/berks-cookbooks
+cookbooks-*.tar.gz
+.DS_Store
+
+environments/production.json
+.stage

@@ -1,0 +1,70 @@
+  location / {
+    content_by_lua '
+      local method = ngx.req.get_method()
+
+      --if method isnt delete go to varnish
+      if method ~= "DELETE" then
+        return ngx.exec("/fetch" .. ngx.var.uri, ngx.var.args);
+      end
+
+      --lua doesnt have arrays
+      function Set (list)
+        local set = {}
+        for _, l in ipairs(list) do set[l] = true end
+        return set
+      end
+
+      --a list of purgers
+      local purgers = Set {
+        <% @purgers.each do |purger| %>
+        "<%= purger %>",
+        <% end %>
+      }
+
+      --only purgers are allowed to purge
+      if purgers[ngx.var.remote_addr] == nil then
+        ngx.exit(ngx.HTTP_FORBIDDEN)
+      end
+
+      -- read the body before capturing
+      local purge_requests = {
+      <% @nodes.each do |node| %>
+        { "/purge-in-<%= node %>" .. ngx.var.uri, { method = ngx.HTTP_DELETE } },
+      <% end %>
+      }
+
+      -- construct the purge requests table
+      local resps = { ngx.location.capture_multi(purge_requests) }
+
+      ngx.header.content_type = "text/plain"
+
+      for i, resp in ipairs(resps) do
+        ngx.say("---------------")
+        ngx.say("url: " .. purge_requests[i][1])
+        ngx.say("status: " .. resps[1].status)
+        ngx.say("---------------")
+      end
+    ';
+  }
+
+  location /fetch/ {
+    internal;
+    limit_except GET {
+      deny  all;
+    }
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_pass http://varnish/;
+    proxy_set_header Host $host;
+  }
+
+  <% @nodes.each do |node| %>
+  location /purge-in-<%= node %>/ {
+    internal;
+    limit_except DELETE {
+      deny  all;
+    }
+    proxy_http_version 1.1;
+    proxy_pass http://<%= node %>/;
+  }
+  <% end %>

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ssh -t $1 '
+  sudo apt-get update
+  sudo apt-get -y upgrade
+  curl -L https://www.opscode.com/chef/install.sh | sudo bash
+'
