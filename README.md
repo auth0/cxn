@@ -67,7 +67,7 @@ Prepare the node with `./prepare-node` before deploying.
 
 ## Deploy
 
-Make sure you have [Cheef-DK](https://downloads.getchef.com/chef-dk/) installed.
+Make sure you have [Chef-DK](https://downloads.getchef.com/chef-dk/) installed.
 
 Install the cookbooks locally:
 
