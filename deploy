@@ -33,6 +33,7 @@ end
 configuration = JSON.parse( IO.read("#{File.dirname(__FILE__)}/environments/production.json" ) )
 
 configuration['cxn']['nodes'].each do |hostname, ip|
+    next if ARGV[0] && ARGV[0] != hostname
     was_good = deploy(hostname, ip)
     abort "The deploy to #{hostname} failed." unless was_good
 end
