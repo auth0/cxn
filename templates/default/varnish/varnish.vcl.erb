@@ -38,10 +38,18 @@ sub vcl_recv {
 }
 
 sub vcl_synth {
-  if (resp.status == 200 && req.url ~ "^/$") {
-      synthetic("");
-      return (deliver);
-  }
+    if (resp.status == 200 && req.url ~ "^/$") {
+        synthetic("");
+        return (deliver);
+    }
+    if (resp.status == 200 && req.url == "/health") {
+        synthetic("OK");
+        return (deliver);
+    }
+    if (resp.status == 200 && req.method == "DELETE") {
+        synthetic("PURGED");
+        return (deliver);
+    }
 }
 
 sub vcl_backend_response {
