@@ -98,8 +98,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       'cxn' => cxn_config["cxn"]
     }
 
-    puts chef.json
-
     chef.run_list = [
       'recipe[cxn::default]'
     ]
