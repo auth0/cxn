@@ -2,7 +2,11 @@ vcl 4.0;
 
 <% node['cxn']['domains'].each do |config| -%>
 backend s3_<%= config.id %> {
+    <% if node['cxn']['siblings'][node['hostname']] -%>
+    .host = "<%= node['cxn']['siblings'][node['hostname']] %>";
+    <% else -%>
     .host = "s3.<%= config.bucket_region %>.amazonaws.com";
+    <% end -%>
     .port = "80";
     .connect_timeout = 5s;
     .first_byte_timeout = 10s;
@@ -13,7 +17,9 @@ backend s3_<%= config.id %> {
 sub vcl_recv {
 <% node['cxn']['domains'].each do |config| -%>
     if (req.http.host == "<%= config.domain %>") {
+      <% if !node['cxn']['siblings'][node['hostname']] -%>
       set req.http.host = "<%= config.bucket %>.s3.amazonaws.com";
+      <% end -%>
       set req.backend_hint = s3_<%= config.id %>;
     }
 <% end -%>
