@@ -1,6 +1,7 @@
 default['cxn']['purgers'] = {}
 default['cxn']['nodes'] = {}
 default['cxn']['domains'] = []
+default['cxn']['siblings'] = {}
 
 default['cxn']['varnish']['storage'] = 'malloc'
 default['cxn']['varnish']['storage_size'] = '1g'
