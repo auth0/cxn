@@ -1,30 +1,57 @@
 vcl 4.0;
 
+import directors;
+
 <% node['cxn']['domains'].each do |config| -%>
-backend s3_<%= config.id %> {
+backend s3_<%= config.id %><%= if config.has_key? 'fallbacks' then '_default' else '' end  %> {
     <% if node['cxn']['siblings'][node['hostname']] -%>
     .host = "<%= node['cxn']['siblings'][node['hostname']] %>";
     <% else -%>
-    .host = "s3.<%= config.bucket_region %>.amazonaws.com";
+    .host = "<%= config.bucket %>.s3<%= if config.has_key? 'bucket_region' then '-' + config.bucket_region else '' end %>.amazonaws.com";
     <% end -%>
     .port = "80";
     .connect_timeout = 5s;
     .first_byte_timeout = 10s;
     .between_bytes_timeout = 10s;
-}
-<% end -%>
-
-sub vcl_recv {
-<% node['cxn']['domains'].each do |config| -%>
-    if (req.http.host == "<%= config.domain %>") {
-      <% if !node['cxn']['siblings'][node['hostname']] -%>
-      set req.http.host = "<%= config.bucket %>.s3.amazonaws.com";
-      <% end -%>
-      set req.backend_hint = s3_<%= config.id %>;
+    <% if config.has_key? "probe" -%>
+    .probe = {
+        .url = "<%= config['probe'] %>";
     }
-<% end -%>
-    set req.url = regsub(req.url, "\?.*", "");
+    <% end -%>
+}
+<% if config.has_key? 'fallbacks' -%>
 
+<% config.fallbacks.each_with_index do |fallback, fallback_index| -%>
+
+backend s3_<%= config.id %>_<%= fallback_index  %> {
+    .host = "<%= fallback.bucket %>.s3<%= if fallback.has_key? 'bucket_region' then '-' + fallback.bucket_region else '' end %>.amazonaws.com";
+    .port = "80";
+    .connect_timeout = 5s;
+    .first_byte_timeout = 10s;
+    .between_bytes_timeout = 10s;
+    <% if config.has_key? "probe" -%>
+    .probe = {
+        .url = "<%= config['probe'] %>";
+    }
+    <% end -%>
+}
+<% end # fallbacks.each_with_index -%>
+<% end # config.has_key? 'fallbacks' -%>
+<% end # node['cxn']['domains'].each -%>
+
+sub vcl_init {
+<% node['cxn']['domains'].each do |config| -%>
+    <%- next unless config.has_key? 'fallbacks' %>
+
+    new s3_<%= config.id %> = directors.fallback();
+    s3_<%= config.id %>.add_backend(s3_<%= config.id %>_default);
+    <% config.fallbacks.each_with_index do |fallback, fallback_index| -%>
+    s3_<%= config.id %>.add_backend(s3_<%= config.id %>_<%= fallback_index %>);
+    <% end -%>
+
+<% end -%>
+}
+sub vcl_recv {
     if (req.method == "DELETE") {
         ban("obj.http.x-url ~ " + req.url);
         return (synth(200, "OK"));
@@ -33,6 +60,21 @@ sub vcl_recv {
     if (req.url == "/health" || req.url == "/"){
         return (synth(200, "OK"));
     }
+
+<% node['cxn']['domains'].each do |config| -%>
+    if (req.http.host == "<%= config.domain %>") {
+      <% if !node['cxn']['siblings'][node['hostname']] -%>
+      unset req.http.host;
+      <% end -%>
+      <% if config.has_key? 'fallbacks' -%>
+      set req.backend_hint = s3_<%= config.id %>.backend();
+      <% else -%>
+      set req.backend_hint = s3_<%= config.id %>;
+      <% end -%>
+    }
+<% end -%>
+
+    set req.url = regsub(req.url, "\?.*", "");
 
     # remove headers from request
     unset req.http.cookie;
