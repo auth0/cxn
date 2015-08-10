@@ -95,3 +95,6 @@ Vagrantfile
 
 production.json
 files/default/localcerts/*
+
+.stage
+.vagrant
