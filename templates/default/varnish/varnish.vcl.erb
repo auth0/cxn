@@ -143,3 +143,8 @@ sub vcl_backend_response {
         set beresp.ttl = 3h;
     }
 }
+
+sub vcl_hash {
+    hash_data(req.url);
+    hash_data(req.backend_hint);
+}
