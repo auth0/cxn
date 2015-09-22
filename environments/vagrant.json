@@ -11,8 +11,8 @@
       {
         "id":            "global",
         "domain":        "cdn-local.it.auth0.com",
-        "bucket":        "assets.auth0.com",
-        "bucket_region": "us-east-1",
+        "bucket":        "assets.us.auth0.com",
+        "bucket_region": "us-west-1",
         "ssl":           false
       }
     ]
