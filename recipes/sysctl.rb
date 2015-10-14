@@ -50,3 +50,7 @@ end
 sysctl_param 'net.ipv4.tcp_tw_reuse' do
     value 1
 end
+
+sysctl_param "fs.file-max" do
+  value 10240
+end
