@@ -33,6 +33,11 @@ template "#{node['nginx']['dir']}/sites-enabled/00-purger" do
   )
 end
 
+template "/etc/default/nginx" do
+  source 'nginx/default_nginx.erb'
+  notifies :reload, 'service[nginx]'
+end
+
 node['cxn']['domains'].each do |config|
   template "#{node['nginx']['dir']}/sites-enabled/#{config.domain}" do
 
