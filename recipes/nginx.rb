@@ -33,6 +33,23 @@ template "#{node['nginx']['dir']}/sites-enabled/00-purger" do
   )
 end
 
+logrotate_app 'nginx' do
+  cookbook  'logrotate'
+  frequency 'hourly'
+  path      '/var/log/nginx/*.log'
+  options   ['missingok', 'delaycompress', 'notifempty', 'sharedscripts']
+  create    '0640 www-data adm'
+  rotate    50
+  su        'root'
+  size      '50M'
+  postrotate 'invoke-rc.d nginx rotate >/dev/null 2>&1'
+  prerotate <<-EOF
+    if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
+      run-parts /etc/logrotate.d/httpd-prerotate; \
+    fi \
+  EOF
+end
+
 template "/etc/default/nginx" do
   source 'nginx/default_nginx.erb'
   notifies :reload, 'service[nginx]'
