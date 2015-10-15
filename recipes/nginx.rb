@@ -44,10 +44,15 @@ logrotate_app 'nginx' do
   size      '50M'
   postrotate 'invoke-rc.d nginx rotate >/dev/null 2>&1'
   prerotate <<-EOF
-    if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
-      run-parts /etc/logrotate.d/httpd-prerotate; \
-    fi \
-  EOF
+  if [ -d /etc/logrotate.d/httpd-prerotate ]; then \\
+      run-parts /etc/logrotate.d/httpd-prerotate; \\
+    fi \\
+EOF
+end
+
+link '/etc/cron.hourly/logrotate' do
+  to '/etc/cron.daily/logrotate'
+  link_type :symbolic
 end
 
 template "/etc/default/nginx" do

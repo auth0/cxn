@@ -6,7 +6,7 @@ description 'Installs/Configures kibana'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version '0.0.1'
 
-%w(nginx varnish apt newrelic hostsfile sysctl).each do |cb|
+%w(nginx varnish apt newrelic hostsfile sysctl logrotate).each do |cb|
   depends cb
 end
 
