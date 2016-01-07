@@ -37,7 +37,7 @@ logrotate_app 'nginx' do
   cookbook  'logrotate'
   frequency 'hourly'
   path      '/var/log/nginx/*.log'
-  options   ['missingok', 'notifempty', 'sharedscripts']
+  options   ['missingok', 'compress', 'notifempty', 'sharedscripts']
   create    '0640 www-data adm'
   rotate    30
   su        'root'
