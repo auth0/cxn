@@ -7,7 +7,7 @@ What you need to know:
 -  The architecture is *nginx (ssl/app)* -> *varnish (cache)* -> *s3 (storage)*.
 -  The project uses [Chef](https://www.chef.io) to configure the nodes of the CDN.
 -  The nodes use Ubuntu and you are supposed to provision them manually (for now).
--  The Route53 configuraiton is done manually (for now).
+-  The Route53 configuration is done manually (for now).
 
 ## Setup
 
@@ -41,12 +41,12 @@ The configuration of the CDN fits in a JSON format as follows and is stored in "
 
 -  **nodes** (required): is a hash of the nodes on the CDN. The key is the hostname and the value is the public IP Address.
 -  **purgers** (required): is a hash of nodes allowed to purge the CDN from outside. The key of the hash is not used anywhere and the value is the IP Address.
--  **newrelic** (optional): is the [newrelic](http://newrelic.com) token. If set the newrelic agent will be installed and configured on every machine.
+-  **newrelic** (optional): is the [newrelic](http://newrelic.com) token. If set the Newrelic agent will be installed and configured on every machine.
 -  **domains** (required): is a list of the domains handled by the CDN. Each domain has the following attributes:
     -  **id**: friendly name for the domain
     -  **domain**: the domain for the CDN.
     -  **bucket**: the S3 backend of the CDN.
-    -  **bucket_region**: the region og the S3 bucket.
+    -  **bucket_region**: the region on the S3 bucket.
     -  **ssl**: enable/disable https.
 
 ## Testing
@@ -77,7 +77,7 @@ berks install
 
 Create a `environments/production.json` file and run the `./deploy` command.
 
-You will need to have ssh access to the nodes of the cdn you are going to configure.
+You will need to have ssh access to the nodes of the CDN you are going to configure.
 
 ## Purging the CDN
 
@@ -99,7 +99,7 @@ This purge request is not authenticated but every node keeps a list of allowed n
 
 You can start with Route53 Latency based DNS. This reduce latency for your users by serving their requests from the Amazon EC2 region for which network latency is lowest.
 
-AWS might not have enought regions for you. Auth0 CDN for instance use a combination of **Geolocation Routing** + **Lantency Based**.
+AWS might not have enough regions for you. Auth0 CDN for instance use a combination of **Geolocation Routing** + **Lantency Based**.
 
 The first level of DNS (cdn.auth0.com) uses GeoLocation and it has a default CNAME pointing to a Latency based record (cdn-global.auth0.com).
 
@@ -109,6 +109,14 @@ This allow us to point specific countries to other (non-AWS) VPS providers.
 
 We plan to build an opensource [Terraform](https://www.terraform.io/) project to automatically create the EC2 instances and the Route53 configuration.
 
+## Issue Reporting
+
+If you have found a bug or if you have a feature request, please report them at this repository issues section. Please do not report security vulnerabilities on the public GitHub issue tracker. The [Responsible Disclosure Program](https://auth0.com/whitehat) details the procedure for disclosing security issues.
+
+## Author
+
+[Auth0](auth0.com)
+
 ## License
 
-MIT 2014 - Auth0 INC.
+This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
