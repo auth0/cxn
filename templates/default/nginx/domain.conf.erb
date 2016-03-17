@@ -2,7 +2,7 @@
 
 server {
 
-  listen      443 ssl <% if @default -%>default_server<% end -%>;
+  listen      443 ssl <% if @default_server -%>default_server<% end -%>;
   server_name <%= @domain %>;
 
   ssl_certificate     <%= @ssl_certificate %>;
