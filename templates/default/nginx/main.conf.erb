@@ -42,6 +42,7 @@
         ngx.say("---------------")
         ngx.say("url: " .. purge_requests[i][1])
         ngx.say("status: " .. resps[1].status)
+        ngx.say("body: " .. resps[1].body)
         ngx.say("---------------")
       end
     ';
@@ -54,11 +55,12 @@
     }
 
     more_clear_headers 'Cookie';
-
+    more_clear_headers 'x-amz-replication-status';
+    more_clear_headers 'x-amz-version-id';
     proxy_http_version 1.1;
     proxy_set_header Connection "";
-    proxy_pass http://varnish/;
     proxy_set_header Host $host;
+    proxy_pass http://varnish/;
   }
 
   <% @nodes.each do |node| %>
@@ -69,6 +71,7 @@
     }
     proxy_http_version 1.1;
     proxy_set_header Connection "";
+    proxy_set_header PurgeHost $host;
     proxy_pass http://<%= node %>/;
   }
   <% end %>

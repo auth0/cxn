@@ -52,17 +52,12 @@ sub vcl_init {
 <% end -%>
 }
 sub vcl_recv {
-    if (req.method == "DELETE") {
-        ban("obj.http.x-url ~ " + req.url);
-        return (synth(200, "OK"));
-    }
-
-    if (req.url == "/health" || req.url == "/"){
-        return (synth(200, "OK"));
-    }
+    #save the original host header in x-host since we need
+    #to clear this up before going to s3.
+    set req.http.x-host = req.http.host;
 
 <% node['cxn']['domains'].each do |config| -%>
-    if (req.http.host == "<%= config.domain %>") {
+    if (req.http.host == "<%= config.domain %>" || req.http.purgehost == "<%= config.domain %>") {
       <% if !node['cxn']['siblings'][node['hostname']] -%>
       unset req.http.host;
       <% end -%>
@@ -71,10 +66,30 @@ sub vcl_recv {
       <% else -%>
       set req.backend_hint = s3_<%= config.id %>;
       <% end -%>
+
+      <% if config.has_key? 'rewrites' -%>
+      <% config['rewrites'].each do |rewrite| %>
+      set req.url = regsub(req.url, "<%= rewrite[0] %>", "<%= rewrite[1] %>");
+      <% end -%>
+      <% end -%>
     }
 <% end -%>
 
     set req.url = regsub(req.url, "\?.*", "");
+
+    if (req.method == "DELETE") {
+        #use the purgehost header to purge cache
+        #req.http.host is an internal IP in these cases.
+        ban("obj.http.x-url ~ " + req.url +
+            " && obj.http.x-host ~ " + req.http.purgehost);
+
+        return (synth(200, "OK"));
+    }
+
+    if (req.url == "/health" || req.url == "/"){
+        return (synth(200, "OK"));
+    }
+
 
     # remove headers from request
     unset req.http.cookie;
@@ -86,16 +101,16 @@ sub vcl_recv {
 }
 
 sub vcl_synth {
+    if (resp.status == 200 && req.method == "DELETE") {
+        synthetic("PURGED " + req.http.purgehost);
+        return (deliver);
+    }
     if (resp.status == 200 && req.url ~ "^/$") {
         synthetic("");
         return (deliver);
     }
     if (resp.status == 200 && req.url == "/health") {
         synthetic("OK");
-        return (deliver);
-    }
-    if (resp.status == 200 && req.method == "DELETE") {
-        synthetic("PURGED");
         return (deliver);
     }
 }
@@ -115,6 +130,11 @@ sub vcl_deliver {
     unset resp.http.X-Amz-Meta-Owner;
     unset resp.http.X-Amz-Meta-Permissions;
     unset resp.http.X-Amz-Request-Id;
+    unset resp.http.x-amz-replication-status;
+    unset resp.http.x-amz-version-id;
+    unset resp.http.x-amz-replication-status;
+    unset resp.http.Age;
+    unset resp.http.x-host;
 
     if (obj.hits > 0) {
         set resp.http.X-Cache = "HIT";
@@ -125,6 +145,9 @@ sub vcl_deliver {
 
 sub vcl_backend_response {
     set beresp.http.x-url = bereq.url;
+
+    #store the host header of the original request:
+    set beresp.http.x-host = bereq.http.x-host;
 
     if (beresp.http.content-type ~ "(text|application)") {
         set beresp.do_gzip = true;

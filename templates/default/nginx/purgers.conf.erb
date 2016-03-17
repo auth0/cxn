@@ -23,6 +23,7 @@ server {
     }
     proxy_http_version 1.1;
     proxy_set_header Connection "";
+    proxy_set_header PurgeHost $http_purgehost;
     proxy_pass http://varnish;
   }
 }
