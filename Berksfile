@@ -5,6 +5,7 @@ metadata
 cookbook 'apt'
 cookbook 'ohai'
 cookbook 'newrelic'
+cookbook 'rsyslog'
 cookbook 'build-essential'
 cookbook 'nginx', git: "https://github.com/auth0/chef-nginx.git", branch: 'custom_access_logs'
 cookbook 'varnish', git: "https://github.com/auth0/chef-varnish.git", branch: 'fix_mismatch_issue'
