@@ -2,9 +2,11 @@ override['nginx']['version'] = '1.7.7'
 
 override['nginx']['default_site_enabled'] = false
 override['nginx']['upstream_repository'] = 'http://ppa.launchpad.net/nginx/stable/ubuntu'
-override['nginx']['worker_processes'] = 4
+override['nginx']['worker_processes'] = 2
+override['nginx']['worker_connections'] = 2048
 override['nginx']['gzip'] = 'off'
 override['nginx']['server_tokens'] = 'off'
+override['nginx']['keepalive_timeout'] = '10s'
 
 override['nginx']['install_method'] = 'package'
 override['nginx']['repo_source'] = 'ppa'

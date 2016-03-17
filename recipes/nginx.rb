@@ -88,12 +88,14 @@ node['cxn']['domains'].each do |config|
       source "localcerts/#{config.domain}.crt"
       mode '0600'
       owner node['nginx']['user']
+      notifies :reload, 'service[nginx]'
     end
 
     cookbook_file "/etc/ssl/localcerts/#{config.domain}.key" do
       source "localcerts/#{config.domain}.key"
       mode '0600'
       owner node['nginx']['user']
+      notifies :reload, 'service[nginx]'
     end
   end
 
