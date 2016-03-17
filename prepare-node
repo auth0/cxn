@@ -2,6 +2,6 @@
 
 ssh -t $1 '
   sudo apt-get update
-  sudo apt-get -y upgrade
+  apt-get upgrade -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
   curl -L https://www.opscode.com/chef/install.sh | sudo bash
 '
