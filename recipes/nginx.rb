@@ -72,6 +72,7 @@ node['cxn']['domains'].each do |config|
     notifies :reload, 'service[nginx]'
 
     variables(
+      default_server:      node['cxn']['domains'].index(config) == 0,
       domain:              config.domain,
       ssl:                 config.ssl,
       ssl_certificate:     "/etc/ssl/localcerts/#{config.domain}.crt",
