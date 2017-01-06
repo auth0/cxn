@@ -48,7 +48,7 @@ template "/etc/default/nginx" do
   notifies :reload, 'service[nginx]'
 end
 
-if config.ssl then
+if node['cxn']['domains'].any? { |config| config.ssl } then
   cookbook_file "/etc/ssl/private/dhparam.pem" do
     source "dhparam.pem"
     mode "0600"
