@@ -1,15 +1,13 @@
-override['nginx']['version'] = '1.7.7'
-
 override['nginx']['default_site_enabled'] = false
-override['nginx']['upstream_repository'] = 'http://ppa.launchpad.net/nginx/stable/ubuntu'
 override['nginx']['worker_processes'] = 2
-override['nginx']['worker_connections'] = 2048
+override['nginx']['worker_connections'] = 20000
 override['nginx']['gzip'] = 'off'
 override['nginx']['server_tokens'] = 'off'
 override['nginx']['keepalive_timeout'] = '10s'
 
 override['nginx']['install_method'] = 'package'
-override['nginx']['repo_source'] = 'ppa'
+override['nginx']['repo_source'] = 'nginx'
+override['nginx']['package_name'] = 'nginx-extras'
 
 override['nginx']['log_formats'] = {
   "acc_log" => %{'$remote_addr - $remote_user [$time_local] '
@@ -22,4 +20,5 @@ override['nginx']['client_body_buffer_size'] = "10k"
 override['nginx']['client_max_body_size'] = "10k"
 
 # Reload nginx::source attributes with our updated version
-node.from_file(run_context.resolve_attribute('nginx', 'source'))
+# node.from_file(run_context.resolve_attribute('nginx', 'source'))
+

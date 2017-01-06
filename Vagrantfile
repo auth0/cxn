@@ -39,7 +39,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   # If this value is a shorthand to a box in Vagrant Cloud then
   # config.vm.box_url doesn't need to be specified.
-  config.vm.box = 'chef/ubuntu-14.04'
+  config.vm.box = 'bento/ubuntu-14.04'
 
 
   # Assign this VM to a host-only network IP, allowing you to access it
@@ -85,7 +85,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # to skip installing and copying to Vagrant's shelf.
   # config.berkshelf.except = []
 
-  config.vm.provision "shell", inline: 'rm -rf /var/lib/apt/lists/* ; apt-get update'
+  # only when the box is too old.
+  # config.vm.provision "shell", inline: 'rm -rf /var/lib/apt/lists/* ; apt-get update'
 
   cxn_config = JSON.parse(File.read(File.dirname(__FILE__) + '/environments/vagrant.json'))
 
@@ -98,8 +99,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       'cxn' => cxn_config["cxn"]
     }
 
-    chef.run_list = [
-      'recipe[cxn::default]'
-    ]
+    chef.add_recipe 'cxn::default'
+
   end
 end

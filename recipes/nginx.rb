@@ -1,11 +1,3 @@
-apt_repository "nginx" do
-  uri "http://ppa.launchpad.net/nginx/development/ubuntu"
-  distribution node['lsb']['codename']
-  components ["main"]
-  keyserver "keyserver.ubuntu.com"
-  key "C300EE8C"
-end
-
 if node['cxn']['logging'] then
     node.set['nginx']['access_log'] = [
       '/var/log/nginx/access.log acc_log',
@@ -19,16 +11,12 @@ end
 
 include_recipe 'nginx'
 
-package 'nginx-extras' do
-  notifies :reload, 'service[nginx]'
-end
-
 template "#{node['nginx']['dir']}/sites-enabled/00-purger" do
   source 'nginx/purgers.conf.erb'
   notifies :reload, 'service[nginx]'
   variables(
     varnish_address:     'localhost',
-    varnish_port:        node['varnish']['listen_port'],
+    varnish_port:        node['varnish']['configure']['config']['listen_port'],
     purgers:             node['cxn']['purgers'].values + node['cxn']['nodes'].values
   )
 end
@@ -58,6 +46,16 @@ end
 template "/etc/default/nginx" do
   source 'nginx/default_nginx.erb'
   notifies :reload, 'service[nginx]'
+end
+
+if config.ssl then
+  cookbook_file "/etc/ssl/private/dhparam.pem" do
+    source "dhparam.pem"
+    mode "0600"
+    owner "root"
+    group "root"
+    notifies :reload, 'service[nginx]'
+  end
 end
 
 node['cxn']['domains'].each do |config|
