@@ -34,3 +34,6 @@ override['varnish']['configure']['config']['file_storage_size'] = node['cxn']['v
 override['varnish']['configure']['vcl_template']['source'] = 'varnish/varnish.vcl.erb'
 override['varnish']['configure']['vcl_template']['cookbook'] = 'cxn'
 
+override['varnish']['configure']['log']['log_format'] = 'varnishncsa'
+override['varnish']['configure']['ncsa']['logrotate'] = false
+override['varnish']['configure']['log']['logrotate'] = false
