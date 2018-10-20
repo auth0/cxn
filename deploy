@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require "json"
+require 'json'
 
-STAGE_DIR = '.stage/'
+STAGE_DIR = '.stage/'.freeze
 
 build_package = <<SCRIPT
     rm -rf cookbooks-*.tar.gz
@@ -15,25 +15,26 @@ build_package = <<SCRIPT
     cp environments/production.json #{STAGE_DIR}/
 SCRIPT
 
-was_ok = system (build_package)
-abort "Error building the package." unless was_ok
+was_ok = system build_package
+abort 'Error building the package.' unless was_ok
 
 def deploy(hostname, ip)
-    puts "deploying to #{hostname}"
+  puts "deploying to #{hostname}"
 
-cmd = <<SCRIPT
+  cmd = <<SCRIPT
     rsync --delete -r #{STAGE_DIR}/ #{hostname}:/tmp/cxn ;
     ssh #{hostname} "cd /tmp/cxn ; sudo chef-solo -j production.json -r cookbooks-*.tar.gz -N #{hostname}" ;
     test $(curl -s -o /dev/null -I -w "%{http_code}" http://#{ip}/health) = 200
 SCRIPT
 
-   system (cmd)
+  system cmd
 end
 
-configuration = JSON.parse( IO.read("#{File.dirname(__FILE__)}/environments/production.json" ) )
+configuration = JSON.parse(IO.read("#{File.dirname(__FILE__)}/environments/production.json"))
 
 configuration['cxn']['nodes'].each do |hostname, ip|
-    next if ARGV[0] && ARGV[0] != hostname
-    was_good = deploy(hostname, ip)
-    abort "The deploy to #{hostname} failed." unless was_good
+  next if ARGV[0] && ARGV[0] != hostname
+
+  was_good = deploy(hostname, ip)
+  abort "The deploy to #{hostname} failed." unless was_good
 end

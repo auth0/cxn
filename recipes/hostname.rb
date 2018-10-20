@@ -13,7 +13,8 @@ end
 
 node['cxn']['nodes'].sort.each do |host, ip|
   next if host == node.name
+
   hostsfile_entry ip do
-    hostname  host
+    hostname host
   end
 end

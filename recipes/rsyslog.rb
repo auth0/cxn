@@ -1,7 +1,7 @@
-service "rsyslog" do
+service 'rsyslog' do
   provider Chef::Provider::Service::Upstart
-  supports :restart => true
-  action [:enable, :start]
+  supports restart: true
+  action %i[enable start]
 end
 
 template "#{node['rsyslog']['conf_dir']}/10-udp_listener.conf" do

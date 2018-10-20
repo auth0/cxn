@@ -4,7 +4,7 @@
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 require 'json'
 
-VAGRANTFILE_API_VERSION = '2'
+VAGRANTFILE_API_VERSION = '2'.freeze
 
 Vagrant.require_version '>= 1.5.0'
 
@@ -14,23 +14,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   config.vm.hostname = 'cxn'
-  config.vm.network :private_network, ip: "192.168.10.200"
+  config.vm.network :private_network, ip: '192.168.10.200'
 
   # Set the version of chef to install using the vagrant-omnibus plugin
   # NOTE: You will need to install the vagrant-omnibus plugin:
   #
   #   $ vagrant plugin install vagrant-omnibus
   #
-  if !Vagrant.has_plugin?('vagrant-omnibus')
-        raise 'vagrant-omnibus is required. Run:
+  unless Vagrant.has_plugin?('vagrant-omnibus')
+    raise 'vagrant-omnibus is required. Run:
 
-           $ vagrant plugin install vagrant-omnibus'
+       $ vagrant plugin install vagrant-omnibus'
   end
 
   config.omnibus.chef_version = 'latest'
 
-
-  if !Vagrant.has_plugin?('vagrant-berkshelf')
+  unless Vagrant.has_plugin?('vagrant-berkshelf')
     raise 'vagrant-berkshelf is required. Run:
 
            $ vagrant plugin install vagrant-berkshelf'
@@ -40,7 +39,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # If this value is a shorthand to a box in Vagrant Cloud then
   # config.vm.box_url doesn't need to be specified.
   config.vm.box = 'bento/ubuntu-14.04'
-
 
   # Assign this VM to a host-only network IP, allowing you to access it
   # via the IP. Host-only networks can talk to the host machine as well as
@@ -63,15 +61,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Example for VirtualBox:
   #
   config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+    vb.customize ['modifyvm', :id, '--memory', '2048']
   end
   #
   # View the documentation for the provider you're using for more
   # information on available options.
 
   # The path to the Berksfile to use with Vagrant Berkshelf
-  config.berkshelf.berksfile_path = "./Berksfile"
+  config.berkshelf.berksfile_path = './Berksfile'
 
   # Enabling the Berkshelf plugin. To enable this globally, add this configuration
   # option to your ~/.vagrant.d/Vagrantfile file
@@ -92,14 +90,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision :chef_solo do |chef|
     chef.json = {
-      "ohai" => {
-        "plugin_path" => '/var/lib/chef/ohai_plugins',
-        "plugins" => {}
+      'ohai' => {
+        'plugin_path' => '/var/lib/chef/ohai_plugins',
+        'plugins' => {}
       },
-      'cxn' => cxn_config["cxn"]
+      'cxn' => cxn_config['cxn']
     }
 
     chef.add_recipe 'cxn::default'
-
   end
 end

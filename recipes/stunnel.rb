@@ -1,9 +1,9 @@
 package 'stunnel'
 
-service "stunnel" do
-  service_name "stunnel4"
-  supports :restart => true
-  action [:enable, :start]
+service 'stunnel' do
+  service_name 'stunnel4'
+  supports restart: true
+  action %i[enable start]
 end
 
 remote_directory '/etc/stunnel' do

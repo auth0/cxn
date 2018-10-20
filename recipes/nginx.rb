@@ -1,12 +1,12 @@
-if node['cxn']['logging'] then
-    node.set['nginx']['access_log'] = [
-      '/var/log/nginx/access.log acc_log',
-      "syslog:server=#{node['rsyslog']['host']}:#{node['rsyslog']['port']} acc_log"
-    ]
+if node['cxn']['logging']
+  node.set['nginx']['access_log'] = [
+    '/var/log/nginx/access.log acc_log',
+    "syslog:server=#{node['rsyslog']['host']}:#{node['rsyslog']['port']} acc_log"
+  ]
 else
-    node.set['nginx']['access_log'] = [
-      '/var/log/nginx/access.log acc_log'
-    ]
+  node.set['nginx']['access_log'] = [
+    '/var/log/nginx/access.log acc_log'
+  ]
 end
 
 include_recipe 'nginx'
@@ -25,7 +25,7 @@ logrotate_app 'nginx' do
   cookbook  'logrotate'
   frequency 'hourly'
   path      '/var/log/nginx/*.log'
-  options   ['missingok', 'compress', 'notifempty', 'sharedscripts']
+  options   %w[missingok compress notifempty sharedscripts]
   create    '0640 www-data adm'
   rotate    30
   su        'root'
@@ -35,7 +35,7 @@ logrotate_app 'nginx' do
   if [ -d /etc/logrotate.d/httpd-prerotate ]; then \\
       run-parts /etc/logrotate.d/httpd-prerotate; \\
     fi \\
-EOF
+  EOF
 end
 
 link '/etc/cron.hourly/logrotate' do
@@ -43,25 +43,24 @@ link '/etc/cron.hourly/logrotate' do
   link_type :symbolic
 end
 
-template "/etc/default/nginx" do
+template '/etc/default/nginx' do
   source 'nginx/default_nginx.erb'
   notifies :reload, 'service[nginx]'
 end
 
-if node['cxn']['domains'].any? { |config| config.ssl } then
-  cookbook_file "/etc/ssl/private/dhparam.pem" do
-    source "dhparam.pem"
-    mode "0600"
-    owner "root"
-    group "root"
+if node['cxn']['domains'].any?(&:ssl)
+  cookbook_file '/etc/ssl/private/dhparam.pem' do
+    source 'dhparam.pem'
+    mode '0600'
+    owner 'root'
+    group 'root'
     notifies :reload, 'service[nginx]'
   end
 end
 
 node['cxn']['domains'].each do |config|
   template "#{node['nginx']['dir']}/sites-enabled/#{config.domain}" do
-
-    if config.ssl then
+    if config.ssl
       source 'nginx/domain.conf.erb'
     else
       source 'nginx/domain.http.conf.erb'
@@ -80,22 +79,21 @@ node['cxn']['domains'].each do |config|
     )
   end
 
-  if config.ssl then
-    directory "/etc/ssl/localcerts"
+  next unless config.ssl
 
-    cookbook_file "/etc/ssl/localcerts/#{config.domain}.crt" do
-      source "localcerts/#{config.domain}.crt"
-      mode '0600'
-      owner node['nginx']['user']
-      notifies :reload, 'service[nginx]'
-    end
+  directory '/etc/ssl/localcerts'
 
-    cookbook_file "/etc/ssl/localcerts/#{config.domain}.key" do
-      source "localcerts/#{config.domain}.key"
-      mode '0600'
-      owner node['nginx']['user']
-      notifies :reload, 'service[nginx]'
-    end
+  cookbook_file "/etc/ssl/localcerts/#{config.domain}.crt" do
+    source "localcerts/#{config.domain}.crt"
+    mode '0600'
+    owner node['nginx']['user']
+    notifies :reload, 'service[nginx]'
   end
 
+  cookbook_file "/etc/ssl/localcerts/#{config.domain}.key" do
+    source "localcerts/#{config.domain}.key"
+    mode '0600'
+    owner node['nginx']['user']
+    notifies :reload, 'service[nginx]'
+  end
 end

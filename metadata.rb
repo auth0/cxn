@@ -17,6 +17,4 @@ depends 'hostsfile', '~> 2.4.5'
 depends 'sysctl', '~> 0.6.2'
 depends 'logrotate', '~> 1.9.2'
 
-
 supports 'ubuntu'
-

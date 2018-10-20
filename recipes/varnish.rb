@@ -4,7 +4,7 @@ logrotate_app 'varnish' do
   cookbook  'logrotate'
   frequency 'hourly'
   path      '/var/log/varnish/varnishlog.log'
-  options   ['missingok', 'compress', 'notifempty', 'delaycompress']
+  options   %w[missingok compress notifempty delaycompress]
   rotate    10
   su        'root'
   size      '200M'
